@@ -5,6 +5,8 @@
 # This file is open source software distributed according to the terms in
 # LICENSE.txt
 #
+
+import sys
 import time
 import logging
 
@@ -18,6 +20,11 @@ from .transition_manager import TransitionManager
 from .package_globals import get_transition_manager
 
 logger = logging.getLogger(__name__)
+
+if sys.platform == 'win32':
+    accurate_time = time.clock
+else:
+    accurate_time = time.time
 
 
 class AbstractTransition(HasTraits):
@@ -37,7 +44,7 @@ class AbstractTransition(HasTraits):
     state = Str
     
     def start(self):
-        self.start_time = time.time()
+        self.start_time = accurate_time()
         self.event_manager.connect(HeartbeatEvent, self.listener,
             filter={'source': self.transition_manager.heartbeat})
         logging.debug('Started transition key="%s"' % repr(self.key))
