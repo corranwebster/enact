@@ -43,10 +43,13 @@ class AbstractTransition(HasTraits):
     
     state = Str
     
+    priority = Any(0)
+    
     def start(self):
         self.start_time = accurate_time()
         self.event_manager.connect(HeartbeatEvent, self.listener,
-            filter={'source': self.transition_manager.heartbeat})
+            filter={'source': self.transition_manager.heartbeat},
+            priority=self.priority)
         logging.debug('Started transition key="%s"' % repr(self.key))
     
     def stop(self):
@@ -103,6 +106,36 @@ class AttributeTransition(AbstractTransition):
     @cached_property
     def _get_key(self):
         return (self.obj, self.attr)
+
+class ItemTransition(AbstractTransition):
+    
+    obj = Any
+    
+    item = Str
+    
+    initial = Any
+    
+    final = Any
+    
+    key = Property(Any, depends_on=['obj', 'attr'])
+    
+    def start(self):
+        self.initial = self.obj[self.item]
+        super(ItemTransition, self).start()
+    
+    def step(self, dt):
+        value = self.ease_(dt, self.initial, self.final)
+        self.obj[self.item] = value
+        return 'continue'
+    
+    def stop(self):
+        super(ItemTransition, self).stop()
+        self.initial = None # drop reference, just in case
+        self.obj[self.item] = self.final
+    
+    @cached_property
+    def _get_key(self):
+        return (id(self.obj), self.item)
 
 class PlotDataTransition(AbstractTransition):
     

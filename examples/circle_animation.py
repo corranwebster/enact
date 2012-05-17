@@ -83,7 +83,7 @@ class CircleView(HasTraits):
         return AnimatedComponent(animated_context=self.context, bounds=(256,256))
     
     view = View(
-        UItem('component', editor=ComponentEditor()),
+        UItem('component', editor=ComponentEditor(height=256, width=256)),
         UItem('radius'),
         UItem('start'),
         resizable=True,

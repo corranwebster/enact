@@ -29,6 +29,6 @@ class AnimatedComponent(Component):
         with self.animated_context.gc_lock:
             source_gc = self.animated_context.gc
             with gc:
-                gc.draw_image(source_gc, (0, 0, self.width, self.height))
-        
-            
+                gc.draw_image(source_gc, (0, 0, source_gc.width(),
+                    source_gc.height()))
+    
