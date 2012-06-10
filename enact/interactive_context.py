@@ -6,6 +6,8 @@
 # LICENSE.txt
 #
 
+import threading
+
 from traits.api import HasTraits, Bool, Int, Str, Enum, Tuple, Set, Instance, Property
 
 from .animated_context import AbstractAnimatedContext
@@ -63,6 +65,10 @@ class AbstractKeyboardState(HasTraits):
     #: the most recently emitted unicode character
     character = Str
     
+    #: a buffer holding unicode characters, which is cleared when read
+    
+    buffer = Property(Str)
+    
     #: the most recently pressed keycode
     key_code = Str
     
@@ -78,6 +84,22 @@ class AbstractKeyboardState(HasTraits):
     #: whether the shift key is down
     control_down = Property(Bool)
 
+    #: a buffer holding unicode characters pressed
+    _buffer = Str
+    
+    #: a lock to prevent trying to modify the buffer while we are reading it
+    _buffer_lock = Instance(threading.RLock, ())
+    
+    def _get_buffer(self):
+        with self._buffer_lock:
+            buffer = self._buffer
+            self._buffer = ''
+            return buffer
+    
+    def _set_buffer(self, value):
+        with self._buffer_lock:
+            self._buffer += value
+    
     def _get_shift_down(self):
         return 'shift' in self.modifiers
 

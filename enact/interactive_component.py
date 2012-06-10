@@ -89,6 +89,7 @@ class InteractiveComponent(AnimatedComponent):
                 if getattr(event, modifier+'_down'))
             if event.event_type == 'character':
                 self.keyboard.character = event.character
+                self.keyboard.buffer = event.character
             elif event.event_type == 'key_pressed':
                 self.keyboard.key_code = event.character
             
