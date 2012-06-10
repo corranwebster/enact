@@ -60,8 +60,8 @@ class AbstractMouseState(HasTraits):
 
 class AbstractKeyboardState(HasTraits):
     
-    #: the most recently pressed key
-    key = Str
+    #: the most recently emitted unicode character
+    character = Str
     
     #: the most recently pressed keycode
     key_code = Str

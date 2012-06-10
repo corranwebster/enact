@@ -7,13 +7,11 @@
 #
 
 from traits.api import Int, Enum, Tuple, Instance, Property
-from enable.api import Component
+from enable.api import Component, MouseEvent, KeyEvent
 
 from .animated_component import AnimatedComponent
-from .interactive_context import AbstractMouseState, AbstractKeyboardState
-
-MouseButton = Enum('left', 'right', 'middle')
-ModifierKeys = Enum('shift', 'alt', 'control')
+from .interactive_context import AbstractMouseState, AbstractKeyboardState, \
+    MouseButton, ModifierKeys
 
 
 class ComponentMouseState(AbstractMouseState):
@@ -32,6 +30,8 @@ class ComponentMouseState(AbstractMouseState):
         if self.component.window is not None:
             pos = self.component.window.get_pointer_position()
             return self.component.get_relative_coords(*pos)
+        else:
+            return (0, 0)
             
 
 class ComponentKeyboardState(AbstractKeyboardState):
@@ -61,5 +61,38 @@ class InteractiveComponent(AnimatedComponent):
         super(InteractiveComponent, self).__init__(**kwargs)
         self.animated_context.mouse = self.mouse
         self.animated_context.keyboard = self.keyboard
+    
+    def dispatch(self, event, suffix):
+        """ Public method for sending mouse/keyboard events to this interactor.
+        Subclasses may override this to customize the public dispatch behavior.
+        
+        The interactive component introspects the event to update the mouse and
+        keyboard state appropriately, but then follows the usual component
+        dispatch, so that regular Enable tools may be used with the component.
+
+        Parameters
+        ==========
+        event : enable.BaseEvent instance
+            The event to dispach
+        suffix : string
+            The type of event that occurred.  See Interactor class docstring
+            for the list of possible suffixes.
+        
+        """
+        if isinstance(event, MouseEvent):
+            self.mouse.buttons = set(button for button in MouseButton.values
+                if getattr(event, button+'_down'))
+            self.keyboard.modifiers = set(modifier for modifier in ModifierKeys.values
+                if getattr(event, modifier+'_down'))
+        elif isinstance(event, KeyEvent):
+            self.keyboard.modifiers = set(modifier for modifier in ModifierKeys.values
+                if getattr(event, modifier+'_down'))
+            if event.event_type == 'character':
+                self.keyboard.character = event.character
+            elif event.event_type == 'key_pressed':
+                self.keyboard.key_code = event.character
+            
+        self._dispatch_stateful_event(event, suffix)
+        
         
         
