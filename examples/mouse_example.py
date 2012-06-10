@@ -6,6 +6,8 @@
 # LICENSE.txt
 #
 
+import sys
+
 import numpy
 
 from traits.api import HasTraits, Bool, Button, Array, Instance
@@ -43,18 +45,29 @@ class MouseInteraction(InteractiveContext):
         gc = self.gc
         
         mouse_x, mouse_y = self.mouse.position
+        self.random = self.mouse.left_button
+        sys.stdout.write(self.keyboard.buffer)
+        sys.stdout.flush()
 
         x = self.circles['x']
         y = self.circles['y']
         self.circles['radius'] = ((mouse_x-x)**2 + (mouse_y-y)**2)**0.5/self.max_distance * 33
         with gc:
-            # grey background
-            gc.set_fill_color((0.5, 0.5, 0.5))
+            if self.keyboard.shift_down:
+                # white background
+                gc.set_fill_color((1.0, 1.0, 1.0))
+            else:
+                # grey background
+                gc.set_fill_color((0.5, 0.5, 0.5))
             gc.draw_rect((0, 0, gc.width(), gc.height()))
 
             # draw circles at each grid point
-            gc.set_fill_color((1., 1., 1.))
-            mouse_x, mouse_y = self.mouse.position
+            if self.keyboard.shift_down:
+                # grey circles
+                gc.set_fill_color((0.5, 0.5, 0.5))
+            else:
+                # white circles
+                gc.set_fill_color((1., 1., 1.))
             for circle in self.circles:
                     gc.arc(circle['x'], circle['y'], circle['radius'], 0, 2*pi)
                     gc.draw_path(kiva.constants.FILL)
