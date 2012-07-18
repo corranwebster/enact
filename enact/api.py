@@ -13,3 +13,4 @@ from .animated_context import AbstractAnimatedContext
 from .animated_component import AnimatedComponent
 from .interactive_context import InteractiveContext
 from .interactive_component import InteractiveComponent
+from .animated_plot_data import AnimatedPlotData

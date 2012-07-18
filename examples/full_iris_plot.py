@@ -8,13 +8,13 @@ species.
 import numpy
 
 from traits.api import HasTraits, Instance, List, Str, Array, Enum, File, \
-    Tuple, Int, Button, Any, Property, cached_property, on_trait_change
+    Tuple, Int, Button, Property, cached_property, on_trait_change
 from traitsui.api import View, Group, VGroup, HGroup, Item, spring, CheckListEditor, InstanceEditor, TabularEditor
 from traitsui.tabular_adapter import TabularAdapter
 from pyface.api import MessageDialog, FileDialog
-from enact.api import get_transition_manager, PlotDataTransition
+from enact.api import AnimatedPlotData
 from enable.api import ComponentEditor
-from chaco.api import ArrayPlotData, Plot, ScatterInspectorOverlay, marker_trait, jet
+from chaco.api import Plot, ScatterInspectorOverlay, marker_trait, jet
 from chaco.tools.api import PanTool, ZoomTool, DragZoom
 
 from iris import load_iris, iris_dtype
@@ -118,17 +118,10 @@ class IrisPlot(HasTraits):
     visible_plots = List(Str, ['setosa', 'versicolor', 'virginica'])
 
     # ArrayPlotData for plot
-    plot_data = Instance(ArrayPlotData, ())
+    plot_data = Instance(AnimatedPlotData, ())
     
     # Chaco Plot instance
     plot = Instance(Plot)
-    
-    transition_manager = Any
-    
-    def _transition_manager_default(self):
-        transition_manager = get_transition_manager()
-        transition_manager.heartbeat
-        return transition_manager
 
     @cached_property
     def _get_data(self):
@@ -158,33 +151,12 @@ class IrisPlot(HasTraits):
             # get masks for each species
             mask = self.data['species'] == ('Iris-'+species)
             # set default arrays
-            transition_index = PlotDataTransition(
-                ease = 'array_ease_in',
-                plot_data = self.plot_data,
-                data_key = species+'_index',
-                duration = 1.0,
-                final = self.data[self.x_axis][mask],
-            )
-            transition_value = PlotDataTransition(
-                ease = 'array_ease_in',
-                plot_data = self.plot_data,
-                data_key = species+'_value',
-                duration = 1.0,
-                final = self.data[self.y_axis][mask],
-            )
-            transition_color = PlotDataTransition(
-                ease = 'array_ease_in',
-                plot_data = self.plot_data,
-                data_key = species+'_color',
-                duration = 1.0,
-                final = self.data[self.color][mask],
-            )
-            self.transition_manager.connect(transition_index)
-            self.transition_manager.connect(transition_value)
-            self.transition_manager.connect(transition_color)
-            #self.plot_data.set_data(species+'_index', self.data[self.x_axis][mask])
-            #self.plot_data.set_data(species+'_value', self.data[self.y_axis][mask])
-            #self.plot_data.set_data(species+'_color', self.data[self.color][mask])
+            self.plot_data.set_animated(species+'_index', self.data[self.x_axis][mask],
+                ease='ease_in')
+            self.plot_data.set_animated(species+'_value', self.data[self.y_axis][mask],
+                ease='ease_in')
+            self.plot_data.set_animated(species+'_color', self.data[self.color][mask],
+                ease='ease_in')
         
         # set axis titles appropriately
         self.plot.x_axis.title=self.x_axis.title()
@@ -223,7 +195,7 @@ class IrisPlot(HasTraits):
         """ This creates a list of ArrayPlotData instances,
         one for each species.
         """
-        plot_data = ArrayPlotData()
+        plot_data = AnimatedPlotData()
         for species in self.species:
             # set empty default arrays
             plot_data.set_data(species+'_index', [])

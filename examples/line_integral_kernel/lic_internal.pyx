@@ -1,3 +1,10 @@
+#
+# Adapted from Scipy Cookbook Line Integral Convolution
+#
+#     http://www.scipy.org/Cookbook/LineIntegralConvolution
+#
+# Originally by A M Archibald
+#
 
 import numpy as np
 cimport numpy as np
